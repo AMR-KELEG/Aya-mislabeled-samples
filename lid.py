@@ -64,7 +64,7 @@ def main():
                 f"{re.sub('/', '_', args.dataset_name)}_{split}_{args.lid_model.split('-model')[0]}_predictions.csv",
             )
         ),
-        index=False,
+        index=True,
     )
 
 

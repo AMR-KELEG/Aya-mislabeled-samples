@@ -19,10 +19,9 @@ class FASTTEXTLIDModel:
         label, logit = self.model.predict(text)
         label = label[0][len("__label__") :]
         language_code, script = label.split("_")
-
         assert len(language_code) == 3
 
-        return language_code
+        return f"[{language_code}:{logit[0]}]"
 
 
 class LANGDETECTModel:
