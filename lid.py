@@ -53,8 +53,12 @@ def main():
 
     # Perform the LID
     # TODO: The names of the columns change from a dataset to another
-    df["inputs_lid"] = df["inputs"].progress_apply(lambda s: LID_model.predict(s))
-    df["targets_lid"] = df["targets"].progress_apply(lambda s: LID_model.predict(s))
+    df[["inputs_lid", "inputs_lid_proba"]] = df["inputs"].progress_apply(
+        lambda s: pd.Series(LID_model.predict(s))
+    )
+    df[["targets_lid", "targets_lid_proba"]] = df["targets"].progress_apply(
+        lambda s: pd.Series(LID_model.predict(s))
+    )
 
     # Store the predictions
     predictions_dir = Path(args.output_dir)
@@ -66,7 +70,7 @@ def main():
     output_filename = f"{clean_dataset_name}_{split}_{clean_model_name}_predictions.csv"
     output_path = predictions_dir / output_filename
 
-    df[["inputs_lid", "targets_lid"]].to_csv(
+    df[["inputs_lid", "inputs_lid_proba", "targets_lid", "targets_lid_proba"]].to_csv(
         str(output_path),
         index=True,
     )
