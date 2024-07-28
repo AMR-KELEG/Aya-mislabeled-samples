@@ -10,7 +10,7 @@ tqdm.pandas()
 
 from datasets import load_dataset
 
-penlid_pred = pd.read_csv(
+openlid_pred = pd.read_csv(
     "predictions/CohereForAI_aya_dataset_train_lid201_predictions.csv"
 )
 
