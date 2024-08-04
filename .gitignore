@@ -163,3 +163,4 @@ cython_debug/
 
 *.bin
 predictions/
+prototype scripts/.DS_Store
