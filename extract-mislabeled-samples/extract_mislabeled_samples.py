@@ -34,7 +34,8 @@ def load_lang_predict(dataset_name: str, model_name: str, split: str):
 if __name__ == "__main__":
     dataset_name = "CohereForAI/aya_dataset"
     split = "train"
-    lang_pred_df = load_lang_predict(dataset_name, split)
+    model_name = "glotid"
+    lang_pred_df = load_lang_predict(dataset_name, model_name, split)
 
     dataset = load_dataset(dataset_name)
     df = pd.DataFrame(dataset[split])
@@ -43,13 +44,16 @@ if __name__ == "__main__":
     df['reason'] = ''
     df['category'] = ''
 
+    # Hindi to English rows' targets are mostly direct translations from the Hindi input
     df.loc[(df["inputs_lid"] == "eng") & (df["targets_lid"] == "hin"), 'reason'] += "hindi_translation_of_english_input, "
     df.loc[(df["inputs_lid"] == "eng") & (df["targets_lid"] == "hin"), 'category'] += "instruction_not_followed, "
 
+    # Gujarati to English rows' targets are mostly direct translations from the Gujarati input
     df.loc[(df["inputs_lid"] == "eng") & (df["targets_lid"] == "guj"), 'reason'] += "gujarati_translation_of_english_input, "
     df.loc[(df["inputs_lid"] == "eng") & (df["targets_lid"] == "guj"), 'category'] += "instruction_not_followed, "
 
+    # Any sample with very short input and target is likely to be harmful
     df.loc[(df['inputs'].apply(lambda x: len(x)) < 5) & (df['targets'].apply(lambda x: len(x)) < 5), 'reason'] += "input and output len too short, "
-    df.loc[(df['inputs'].apply(lambda x: len(x)) < 5) & (df['targets'].apply(lambda x: len(x)) < 5), 'reason'] += "low quality examples, "
+    df.loc[(df['inputs'].apply(lambda x: len(x)) < 5) & (df['targets'].apply(lambda x: len(x)) < 5), 'category'] += "low quality examples, "
 
     df[df['reason'] != ''].reset_index().to_csv(f"mislabeled_samples_{re.sub('/', '_', dataset_name)}_{split}.csv")
