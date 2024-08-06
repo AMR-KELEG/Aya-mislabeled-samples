@@ -2,6 +2,8 @@ import re
 
 import fasttext
 import langdetect
+from langdetect.lang_detect_exception import LangDetectException
+import langcodes
 
 # TODO: move these bin files to a separate directory?
 # This would require updating the install.sh script as well!
@@ -22,7 +24,7 @@ class FASTTEXTLIDModel:
         language_code, script = label.split("_")
         assert len(language_code) == 3
 
-        return f"[{language_code}:{logit[0]}]"
+        return language_code, logit[0]
 
 
 class LANGDETECTModel:
@@ -31,8 +33,17 @@ class LANGDETECTModel:
 
     def predict(self, text):
         try:
-            lang_pred = langdetect.detect_langs(text)
-        except:
+            res = langdetect.detect_langs(text)
+            # Only consider the first language.
+            # This is what we are doing with FastText too.
+            raw_lang, prob = res[0].lang, res[0].prob
+
+            # Convert the ISO 639-1 language code to ISO 639-2 (3 letters)
+            lang = langcodes.Language.get(raw_lang).to_alpha3()
+
+            lang_pred = lang, prob
+
+        except LangDetectException:
             # TODO: investigate this
             lang_pred = "error"
         return lang_pred
