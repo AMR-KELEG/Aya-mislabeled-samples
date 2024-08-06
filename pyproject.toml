@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "aya-mislabeled-samples"
+version = "0.1.0"
+description = ""
+authors = ["Amr Keleg <amr.keleg.p@gmail.com>", "mr.Shu <mr@shu.io>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+datasets = "^2.20.0"
+langdetect = "^1.0.9"
+fasttext = {git = "https://github.com/facebookresearch/fastText.git"}
+# This version of numpy is required for fasttext models!
+numpy = "1.25.2"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.4.2"
+isort = "^5.13.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,4 +1,5 @@
 import re
+
 import fasttext
 import langdetect
 
