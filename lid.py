@@ -1,31 +1,33 @@
 # -*- coding: utf-8 -*-
-import os
 import re
+from argparse import ArgumentParser
 from pathlib import Path
+
 import pandas as pd
+from datasets import load_dataset
 from tqdm import tqdm
 
-tqdm.pandas()
-
-from datasets import load_dataset
-
-pd.set_option("display.max_rows", 150)
-pd.set_option("display.max_colwidth", None)
-
-from argparse import ArgumentParser
 from lid_utils import (
-    FASTTEXTLIDModel,
-    LANGDETECTModel,
     GLOTILD_MODEL_NAME,
     OPENILD_MODEL_NAME,
+    FASTTEXTLIDModel,
+    LANGDETECTModel,
 )
+
+OUTPUT_DIR = "predictions"
 
 
 def main():
+    pd.set_option("display.max_rows", 150)
+    pd.set_option("display.max_colwidth", None)
+
+    tqdm.pandas()
+
     # Note: Each dataset is a dictionary whose keys represent the different splits!
 
     parser = ArgumentParser()
     parser.add_argument("--dataset_name", type=str, default="CohereForAI/aya_dataset")
+    parser.add_argument("--output_dir", type=str, default=OUTPUT_DIR)
     parser.add_argument(
         "--lid_model",
         type=str,
@@ -55,15 +57,17 @@ def main():
     df["targets_lid"] = df["targets"].progress_apply(lambda s: LID_model.predict(s))
 
     # Store the predictions
-    OUTPUT_DIR = "predictions"
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    predictions_dir = Path(args.output_dir)
+    predictions_dir.mkdir(parents=True, exist_ok=True)
+
+    # Use three underscores to replace / in dataset name
+    clean_dataset_name = re.sub("/", "___", args.dataset_name)
+    clean_model_name = args.lid_model.split("-model")[0]
+    output_filename = f"{clean_dataset_name}_{split}_{clean_model_name}_predictions.csv"
+    output_path = predictions_dir / output_filename
+
     df[["inputs_lid", "targets_lid"]].to_csv(
-        str(
-            Path(
-                OUTPUT_DIR,
-                f"{re.sub('/', '_', args.dataset_name)}_{split}_{args.lid_model.split('-model')[0]}_predictions.csv",
-            )
-        ),
+        str(output_path),
         index=True,
     )
 
