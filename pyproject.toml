@@ -13,6 +13,7 @@ fasttext = { git = "https://github.com/facebookresearch/fastText.git" }
 # This version of numpy is required for fasttext models!
 numpy = "1.25.2"
 langcodes = "^3.4.0"
+lingua-language-detector = "^2.0.2"
 
 
 [tool.poetry.group.dev.dependencies]
