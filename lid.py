@@ -24,7 +24,6 @@ def main():
     tqdm.pandas()
 
     # Note: Each dataset is a dictionary whose keys represent the different splits!
-
     parser = ArgumentParser()
     parser.add_argument("--dataset_name", type=str, default="CohereForAI/aya_dataset")
     parser.add_argument("--output_dir", type=str, default=OUTPUT_DIR)
