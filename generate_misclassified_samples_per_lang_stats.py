@@ -56,7 +56,7 @@ def find_all_statdf_mislabels(df):
   return problematic
 
 openlid_pred = pd.read_csv(
-    "C:/Users/chiso/OneDrive/Documents/Aya/predictions/CohereForAI_aya_dataset_train_lid201_predictions.csv"
+    "predictions/CohereForAI_aya_dataset_train_lid201_predictions.csv"
 )
 
 dataset = load_dataset("CohereForAI/aya_dataset")
