@@ -25,9 +25,6 @@ def load_lang_predict(dataset_name: str, model_name: str, split: str):
     )
     lang_pred = pd.read_csv(lang_pred_filename)
 
-    for column in ["inputs_lid", "targets_lid"]:
-        lang_pred[column] = lang_pred[column].apply(lambda s: s[1:-1].split(":")[0])
-
     return lang_pred
 
 
