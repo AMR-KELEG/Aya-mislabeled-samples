@@ -1,19 +1,11 @@
-# %%
 import cohere 
 import re
 import pandas as pd
 
-# %%
 co = cohere.Client(
   api_key="", # This is your API key
 ) 
 
-# Define rate limit: 10 calls per 60 seconds
-# CALLS = 5
-# PERIOD = 60
-
-# @sleep_and_retry
-# @limits(calls=CALLS, period=PERIOD)
 def eval(row):
   inputprompt = row["inputs"]
   answer = row["targets"]
@@ -43,14 +35,9 @@ def extract_rating(s):
         return float(match.group(1))
     return None
 
-# %%
 df = pd.read_csv("hf://datasets/mislabel-indentification-aya/aya_dataset_mislabeled/mislabeled_samples_CohereForAI_aya_dataset_train.csv")
 
-# %%
 df["llm_judge"] = df.apply(eval, axis=1)
-
-# %%
 df["rating"] = df["llm_judge"].apply(extract_rating)
 
-# %%
 df.to_csv("aya_mislabelled_with_evaluation.csv")
