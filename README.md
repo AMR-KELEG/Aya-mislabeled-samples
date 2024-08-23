@@ -29,3 +29,6 @@ For instance, to only consider language identification predictions
 whose probability is over 0.75, one can run:
 
      poetry run python ensemble.py --predictions_dir predictions/ --output_file ensemble-i-0.75-t-0.75.csv --inputs_proba_thr 0.75 --targets_proba_thr 0.75
+
+## Tokenize the data using stanza
+`poetry run python stanza_tokenize.py --output_file tokenized_data.csv`
