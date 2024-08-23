@@ -41,17 +41,6 @@ def tokenize_with_stanza(text, lang_code, pipelines):
         return text.split()
 
 
-def apply_tokenization(row, pipelines):
-    lang_code = row["language_code"]
-    row["inputs_tokens_stanza"] = tokenize_with_stanza(
-        row["inputs"], lang_code, pipelines
-    )
-    row["targets_tokens_stanza"] = tokenize_with_stanza(
-        row["targets"], lang_code, pipelines
-    )
-    return row
-
-
 def main():
     tqdm.pandas()
 
@@ -83,8 +72,17 @@ def main():
     cached_pipelines = download_and_cache_models(list(df["language_code"].unique()))
 
     # Tokenize the inputs and targets
-    df = df.progress_apply(
-        lambda row: apply_tokenization(row, cached_pipelines), axis=1
+    df["inputs_tokens_stanza"] = df.progress_apply(
+        lambda row: tokenize_with_stanza(
+            row["inputs"], row["language_code"], cached_pipelines
+        ),
+        axis=1,
+    )
+    df["targets_tokens_stanza"] = df.progress_apply(
+        lambda row: tokenize_with_stanza(
+            row["targets"], row["language_code"], cached_pipelines
+        ),
+        axis=1,
     )
 
     # Compute the number of tokens in each input and target
