@@ -2,7 +2,7 @@
 name = "aya-mislabeled-samples"
 version = "0.1.0"
 description = ""
-authors = ["Amr Keleg <amr.keleg.p@gmail.com>", "mr.Shu <mr@shu.io>"]
+authors = ["Amr Keleg <amr.keleg.p@gmail.com>", "mr.Shu <mr@shu.io>", "Chisom Chibuike"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
