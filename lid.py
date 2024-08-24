@@ -12,6 +12,7 @@ from lid_utils import (
     OPENILD_MODEL_NAME,
     FASTTEXTLIDModel,
     LANGDETECTModel,
+    LINGUAModel,
 )
 
 OUTPUT_DIR = "predictions"
@@ -24,14 +25,13 @@ def main():
     tqdm.pandas()
 
     # Note: Each dataset is a dictionary whose keys represent the different splits!
-
     parser = ArgumentParser()
     parser.add_argument("--dataset_name", type=str, default="CohereForAI/aya_dataset")
     parser.add_argument("--output_dir", type=str, default=OUTPUT_DIR)
     parser.add_argument(
         "--lid_model",
         type=str,
-        choices=[GLOTILD_MODEL_NAME, OPENILD_MODEL_NAME, "langdetect"],
+        choices=[GLOTILD_MODEL_NAME, OPENILD_MODEL_NAME, "langdetect", "lingua"],
         required=True,
     )
     parser.add_argument("--dataset_split", type=str, default="train")
@@ -39,10 +39,19 @@ def main():
     args = parser.parse_args()
     split = args.dataset_split
 
+    model_map = {
+        "langdetect": LANGDETECTModel,
+        "lingua": LINGUAModel,
+        GLOTILD_MODEL_NAME: FASTTEXTLIDModel,
+        OPENILD_MODEL_NAME: FASTTEXTLIDModel,
+    }
+
+    model_class = model_map.get(args.lid_model)
+
     LID_model = (
-        FASTTEXTLIDModel(model_bin_path=args.lid_model)
-        if args.lid_model != "langdetect"
-        else LANGDETECTModel()
+        model_class(model_bin_path=args.lid_model)
+        if type(model_class) is FASTTEXTLIDModel
+        else model_class()
     )
 
     # Load the annotations dataset
@@ -53,8 +62,12 @@ def main():
 
     # Perform the LID
     # TODO: The names of the columns change from a dataset to another
-    df["inputs_lid"] = df["inputs"].progress_apply(lambda s: LID_model.predict(s))
-    df["targets_lid"] = df["targets"].progress_apply(lambda s: LID_model.predict(s))
+    df[["inputs_lid", "inputs_lid_proba"]] = df["inputs"].progress_apply(
+        lambda s: pd.Series(LID_model.predict(s))
+    )
+    df[["targets_lid", "targets_lid_proba"]] = df["targets"].progress_apply(
+        lambda s: pd.Series(LID_model.predict(s))
+    )
 
     # Store the predictions
     predictions_dir = Path(args.output_dir)
@@ -66,7 +79,7 @@ def main():
     output_filename = f"{clean_dataset_name}_{split}_{clean_model_name}_predictions.csv"
     output_path = predictions_dir / output_filename
 
-    df[["inputs_lid", "targets_lid"]].to_csv(
+    df[["inputs_lid", "inputs_lid_proba", "targets_lid", "targets_lid_proba"]].to_csv(
         str(output_path),
         index=True,
     )
