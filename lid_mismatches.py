@@ -15,10 +15,16 @@ def main():
         help="Name of the HuggingFace dataset.",
     )
     parser.add_argument(
-        "--csv_filename",
+        "--lid_csv_filename",
         type=str,
         required=True,
         help="CSV file with language identification results.",
+    )
+    parser.add_argument(
+        "--tokenized_csv_filename",
+        type=str,
+        required=True,
+        help="CSV file with tokenized inputs and targets.",
     )
     parser.add_argument(
         "--inputs_lid_col",
@@ -54,19 +60,25 @@ def main():
         "--clean_samples_csv",
         type=str,
         default="lid_clean_samples.csv",
-        help="Filename for the output CSV with clean samples where LIDs match the assigned language."
+        help="Filename for the output CSV with clean samples where LIDs match the assigned language.",
+    )
+    parser.add_argument(
+        "--duplicated_samples_csv", type=str, default="lid_duplicated_samples.csv"
+    )
+    parser.add_argument(
+        "--short_samples_csv", type=str, default="lid_short_samples.csv"
     )
     parser.add_argument(
         "--wrong_language_csv",
         type=str,
         default="lid_wrong_language_samples.csv",
-        help="Filename for the output CSV with samples where both LIDs are wrong."
+        help="Filename for the output CSV with samples where both LIDs are wrong.",
     )
     parser.add_argument(
         "--mismatch_samples_csv",
         type=str,
         default="lid_mismatch_samples.csv",
-        help="Filename for the output CSV with samples where either the input or target LID differs from the assigned language."
+        help="Filename for the output CSV with samples where either the input or target LID differs from the assigned language.",
     )
 
     args = parser.parse_args()
@@ -75,11 +87,30 @@ def main():
     dataset = load_dataset(args.dataset_name)
     df = pd.DataFrame(dataset[args.dataset_split])
 
-    # Load the CSV file
-    lid_df = pd.read_csv(args.csv_filename)
+    # Load the tokenized CSV file
+    tokenized_df = pd.read_csv(args.tokenized_csv_filename)
+
+    # Load the lid CSV file
+    lid_df = pd.read_csv(args.lid_csv_filename)
 
     # Merge dataset with LID results
-    m_df = pd.concat([df, lid_df], axis=1)
+    m_df = pd.concat([df, lid_df, tokenized_df], axis=1)
+
+    # 1. Drop duplicates
+    duplicated_df = m_df[m_df.duplicated(subset=["inputs", "targets"], keep="first")]
+    duplicated_df.to_csv(args.duplicated_samples_csv, index=False)
+    print(f"Duplicated samples saved to {args.duplicated_samples_csv}")
+    m_df.drop_duplicates(subset=["inputs", "targets"], keep="first", inplace=True)
+
+    # 2. Filter out rows based on minimum length criteria
+    short_df = m_df[
+        (m_df["inputs_n_tokens_stanza"] < 4)
+        & (m_df["targets_n_tokens_stanza"] < 4)
+        & (df["inputs"].apply(lambda s: not any([s.strip().endswith(c) for c in "?؟"])))
+    ]
+    short_df.to_csv(args.short_samples_csv, index=False)
+    print(f"Short samples saved to {args.short_samples_csv}")
+    m_df.drop(short_df.index, inplace=True)
 
     # Filter out rows based on minimum length criteria
     merged_df = m_df[
