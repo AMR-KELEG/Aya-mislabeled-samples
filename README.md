@@ -1,6 +1,6 @@
 ## Setting up the envionment
 
-`conda create -n aya python=3.10.12`
+`conda create -n aya python=3.11`
 
 `conda activate aya`
 
