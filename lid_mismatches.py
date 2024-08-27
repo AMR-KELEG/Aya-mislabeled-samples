@@ -39,19 +39,6 @@ def main():
         help="Dataset split to use (e.g., train, test, validation).",
     )
     parser.add_argument(
-        "--condition",
-        type=str,
-        choices=["and", "or"],
-        default="and",
-        help="Condition to use for mismatch filtering between the `input` field and `targets` field (can be 'and' or 'or').",
-    )
-    parser.add_argument(
-        "--output_csv",
-        type=str,
-        default="mismatched_languages.csv",
-        help="Filename for the output CSV with mismatches.",
-    )
-    parser.add_argument(
         "--min_inputs_length",
         type=int,
         default=0,
@@ -62,6 +49,24 @@ def main():
         type=int,
         default=0,
         help="Minimum length of the `targets` field to keep the row.",
+    )
+    parser.add_argument(
+        "--clean_samples_csv",
+        type=str,
+        default="lid_clean_samples.csv",
+        help="Filename for the output CSV with clean samples where LIDs match the assigned language."
+    )
+    parser.add_argument(
+        "--wrong_language_csv",
+        type=str,
+        default="lid_wrong_language_samples.csv",
+        help="Filename for the output CSV with samples where both LIDs are wrong."
+    )
+    parser.add_argument(
+        "--mismatch_samples_csv",
+        type=str,
+        default="lid_mismatch_samples.csv",
+        help="Filename for the output CSV with samples where either the input or target LID differs from the assigned language."
     )
 
     args = parser.parse_args()
@@ -82,26 +87,32 @@ def main():
         & (m_df["targets"].str.len() >= args.min_targets_length)
     ]
 
-    # Filter rows where `language_code` does not match
-    # either `inputs_lid` or `targets_lid`
-    # Filter rows based on the selected condition
-    if args.condition == "and":
-        mismatches_df = merged_df[
-            (merged_df["language_code"] != merged_df[args.inputs_lid_col])
-            & (merged_df["language_code"] != merged_df[args.targets_lid_col])
-        ]
-    else:  # 'or' condition
-        mismatches_df = merged_df[
-            (merged_df["language_code"] != merged_df[args.inputs_lid_col])
-            | (merged_df["language_code"] != merged_df[args.targets_lid_col])
-        ]
+    # 1. Generate clean samples where LIDs match the assigned language
+    clean_samples_df = merged_df[
+        (merged_df["language_code"] == merged_df[args.inputs_lid_col])
+        & (merged_df["language_code"] == merged_df[args.targets_lid_col])
+    ]
+    clean_samples_df.to_csv(args.clean_samples_csv, index=False)
+    print(f"Clean samples saved to {args.clean_samples_csv}")
 
-    # Save the mismatches to a CSV file
-    mismatches_df.to_csv(args.output_csv, index=False)
-    print(f"Mismatches saved to {args.output_csv}")
+    # 2. Generate samples where both LIDs are wrong
+    wrong_language_df = merged_df[
+        (merged_df["language_code"] != merged_df[args.inputs_lid_col])
+        & (merged_df["language_code"] != merged_df[args.targets_lid_col])
+    ]
+    wrong_language_df.to_csv(args.wrong_language_csv, index=False)
+    print(f"Samples with both LIDs wrong saved to {args.wrong_language_csv}")
+
+    # 3. Generate samples with mismatched LIDs (either input or target differs from assigned language)
+    mismatch_samples_df = merged_df[
+        (merged_df["language_code"] != merged_df[args.inputs_lid_col])
+        | (merged_df["language_code"] != merged_df[args.targets_lid_col])
+    ]
+    mismatch_samples_df.to_csv(args.mismatch_samples_csv, index=False)
+    print(f"Mismatched LID samples saved to {args.mismatch_samples_csv}")
 
     # Calculate and print the distribution of mismatched languages
-    mismatch_distribution = Counter(mismatches_df["language_code"])
+    mismatch_distribution = Counter(mismatch_samples_df["language_code"])
     print("\nDistribution of mismatched languages:")
     for lang, count in mismatch_distribution.items():
         print(f"{lang}: {count}")
