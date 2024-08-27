@@ -4,8 +4,7 @@
 
 `conda activate aya`
 
-Install `poetry` as described in <https://python-poetry.org/docs/#installation>
-and run `poetry install`
+Install `poetry` as described in <https://python-poetry.org/docs/#installation> and run `poetry install`
 
 `./install.sh`
 
@@ -31,4 +30,11 @@ whose probability is over 0.75, one can run:
      poetry run python ensemble.py --predictions_dir predictions/ --output_file ensemble-i-0.75-t-0.75.csv --inputs_proba_thr 0.75 --targets_proba_thr 0.75
 
 ## Tokenize the data using stanza
-`poetry run python stanza_tokenize.py --output_file tokenized_data.csv`
+
+    poetry run python stanza_tokenize.py --output_file tokenized_data.csv
+
+## Extract mismatched rows
+
+Assuming you have the predictions (in this case of the ensemble), one can run the following:
+
+    poetry run  python lid_mismatched.py --csv_filename ensemble.csv --inputs_lid_col aggregated_inputs_lid --targets_lid_col aggregated_targets_lid
