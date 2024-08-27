@@ -106,7 +106,7 @@ def main():
     # 3. Generate samples with mismatched LIDs (either input or target differs from assigned language)
     mismatch_samples_df = merged_df[
         (merged_df["language_code"] != merged_df[args.inputs_lid_col])
-        | (merged_df["language_code"] != merged_df[args.targets_lid_col])
+        ^ (merged_df["language_code"] != merged_df[args.targets_lid_col])
     ]
     mismatch_samples_df.to_csv(args.mismatch_samples_csv, index=False)
     print(f"Mismatched LID samples saved to {args.mismatch_samples_csv}")
